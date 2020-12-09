@@ -2,7 +2,16 @@
 Example structure for a python project with make-based CI targets
 
 
-# How to use
+# Requirements
+## Netbox
+tags:
+  - `discovered`
+Custom Fields:
+  - last_used: date
+  - mac: string
+
+
+# Contributing
 
 ## Requirements and virtual environment
 
