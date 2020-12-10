@@ -2,7 +2,7 @@
 PYTHON_EXE = python3
 PROJECT_NAME="meraki-netbox"
 TOPDIR = $(shell git rev-parse --show-toplevel)
-PYDIRS="meraki-netbox"
+PYDIRS="meraki_netbox"
 VENV = venv_$(PROJECT_NAME)
 VENV_BIN=$(VENV)/bin
 SRC_FILES := $(shell find meraki-netbox -name \*.py)
@@ -75,6 +75,9 @@ clean: ## Clean python-viptela $(VENV)
 	$(RM) -rf *.eggs
 	$(RM) -rf docs/api/*
 	find . -name "*.pyc" -exec $(RM) -rf {} \;
+	$(RM) -rf lambda-packages
+	$(RM) lambda-packages.zip
+	$(RM) lambda-function.zip
 
 clean-docs-html:
 	$(RM) -rf docs/build/html
@@ -92,6 +95,11 @@ docs-clean: ## Clean generated documentation
 	$(RM) $(GENERATED_DOC_SOURCES)
 	. $(VENV_BIN)/activate ; $(MAKE) -C docs clean
 
+clean-lambda:
+	$(RM) -rf lambda-packages
+	$(RM) lambda-packages.zip
+	$(RM) lambda-function.zip
+
 lambda-packages: requirements.txt ## Install all libraries
 	@[ -d $@ ] || mkdir -p $@/python # Create the libs dir if it doesn't exist
 	pip install -r $< -t $@/python # We use -t to specify the destination of the
@@ -107,17 +115,12 @@ lambda-layer: lambda-packages.zip
 	--zip-file fileb://$< \
 	--compatible-runtimes python3.8
 
-lambda-function.zip: lambda-packages ## Output all code to zip file
-	cd $(PROJECT_NAME) && zip -r ../$@ *.py # zip all python source code into output.zip
+lambda-function.zip: ## Output all code to zip file
+	zip -r $@ lambda_function.py $(PYDIRS) # zip all python source code into output.zip
 
 lambda-deploy: lambda-function.zip ## Deploy all code to aws
 	aws lambda update-function-code \
 	--function-name $(PROJECT_NAME) \
 	--zip-file fileb://$<
-
-clean-lambda:
-	$(RM) -rf lambda-packages
-	$(RM) lambda_layer.zip
-	$(RM) lambda_function.zip		
 
 .PHONY: all clean $(VENV) test check format check-format pylint clean-docs-html clean-docs-markdown apidocs

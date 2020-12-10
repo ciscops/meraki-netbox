@@ -1,12 +1,13 @@
-import os
+import os  # pylint: disable=unused-import
 import logging
 import datetime
-from meraki_netbox import MerakiNetbox
+from meraki_netbox.meraki_netbox import MerakiNetbox
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
+#pylint: disable=unused-argument
 def lambda_handler(event, context):
     logger.debug('new event received: %s', str(event))
     start_time = datetime.datetime.now()

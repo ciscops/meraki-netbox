@@ -19,7 +19,6 @@ import pynetbox
 class MerakiNetbox:
     def __init__(self):
 
-        self.timespan = 60 * 60 * 2
         self.discovered_tag = 'discovered'
         self.discover_network_clients_tag = 'discover-clients'
 
@@ -27,18 +26,37 @@ class MerakiNetbox:
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
         self.logging = logging.getLogger()
 
-        self.meraki_time_format = '%Y-%m-%dT%XZ'
-
         # Initialize Netbox
-        self.nb_url = os.getenv("NETBOX_URL")
-        self.nb_token = os.getenv("NETBOX_TOKEN")
+        if "NETBOX_URL" in os.environ:
+            self.nb_url = os.getenv("NETBOX_URL")
+        else:
+            logging.error("Environmnet variable NETBOX_URL must be set")
+            sys.exit(1)
+
+        if "NETBOX_TOKEN" in os.environ:
+            self.nb_token = os.getenv("NETBOX_TOKEN")
+        else:
+            logging.error("Environmnet variable NETBOX_TOKEN must be set")
+            sys.exit(1)
 
         self.nb = pynetbox.api(url=self.nb_url, token=self.nb_token)
         self.nb_prefixes = self.nb.ipam.prefixes.all()
         self.nb_ip_addresses = self.nb.ipam.ip_addresses.all()
 
         # Inititalize Meraki
-        self.org_id = os.getenv("MERAKI_ORG_ID")
+        if "MERAKI_ORG_ID" in os.environ:
+            self.org_id = os.getenv("MERAKI_ORG_ID")
+        else:
+            logging.error("Environmnet variable MERAKI_ORG_ID must be set")
+            sys.exit(1)
+
+        if "MERAKI_TIMESPAN" in os.environ:
+            self.timespan = os.getenv("MERAKI_TIMESPAN")
+        else:
+            self.timespan = 60 * 60 * 1
+
+        self.meraki_time_format = '%Y-%m-%dT%XZ'
+
         self.dashboard = meraki.DashboardAPI(api_key='',
                                              base_url='https://api-mp.meraki.com/api/v1/',
                                              output_log=False,
@@ -150,10 +168,8 @@ class MerakiNetbox:
             if self.discover_network_clients_tag in net["tags"]:
                 self.logging.debug('Finding clients in network %s (%s of %s)', net["name"], counter, total)
                 clients = self.get_meraki_network_clients(net["id"])
-                if clients:
-                    for client in clients:
-                        # pprint(client)
-                        if client['ip']:
-                            prefix = self.check_prefixes(client['ip'])
-                            if prefix:
-                                self.add_nb_ip_address(client, prefix)
+                for client in clients:
+                    if client['ip']:
+                        prefix = self.check_prefixes(client['ip'])
+                        if prefix:
+                            self.add_nb_ip_address(client, prefix)

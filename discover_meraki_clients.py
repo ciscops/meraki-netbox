@@ -1,5 +1,5 @@
 import datetime
-from meraki_netbox import MerakiNetbox
+from meraki_netbox.meraki_netbox import MerakiNetbox
 
 if __name__ == '__main__':
     start_time = datetime.datetime.now()
