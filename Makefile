@@ -92,5 +92,32 @@ docs-clean: ## Clean generated documentation
 	$(RM) $(GENERATED_DOC_SOURCES)
 	. $(VENV_BIN)/activate ; $(MAKE) -C docs clean
 
+lambda-packages: requirements.txt ## Install all libraries
+	@[ -d $@ ] || mkdir -p $@/python # Create the libs dir if it doesn't exist
+	pip install -r $< -t $@/python # We use -t to specify the destination of the
+	# packages, so that it doesn't install in your virtual env by default
+
+lambda-packages.zip: lambda-packages ## Output all code to zip file
+	cd lambda-packages && zip -r ../$@ * # zip all python source code into output.zip
+
+lambda-layer: lambda-packages.zip
+	aws lambda publish-layer-version \
+	--layer-name $(PROJECT_NAME)-layer \
+	--license-info "MIT" \
+	--zip-file fileb://$< \
+	--compatible-runtimes python3.8
+
+lambda-function.zip: lambda-packages ## Output all code to zip file
+	cd $(PROJECT_NAME) && zip -r ../$@ *.py # zip all python source code into output.zip
+
+lambda-deploy: lambda-function.zip ## Deploy all code to aws
+	aws lambda update-function-code \
+	--function-name $(PROJECT_NAME) \
+	--zip-file fileb://$<
+
+clean-lambda:
+	$(RM) -rf lambda-packages
+	$(RM) lambda_layer.zip
+	$(RM) lambda_function.zip		
 
 .PHONY: all clean $(VENV) test check format check-format pylint clean-docs-html clean-docs-markdown apidocs
