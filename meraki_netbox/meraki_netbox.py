@@ -11,15 +11,13 @@ import pynetbox
 # For example, in Linux/macOS:  export MERAKI_DASHBOARD_API_KEY=093b24e85df15a3e66f1fc359f4c48493eaa1b73
 # API_KEY = '093b24e85df15a3e66f1fc359f4c48493eaa1b73'
 
-# days_to_expire = 3
-# The window to evaluate in seconds
-
 
 class MerakiNetbox:
     def __init__(self):
 
         self.discovered_tag = 'discovered'
         self.discover_network_clients_tag = 'discover-clients'
+        self.discover_expiration = 7
 
         # Initialize logging
         logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
@@ -109,19 +107,32 @@ class MerakiNetbox:
             except pynetbox.lib.query.RequestError as e:
                 self.logging.error(e.error)
 
-    # def delete_nb_ip_address(self, client, prefix):
-    #     # We need to set to "reserved" or delete if the record was discovered
-    #     if nb_ip_address:
-    #         if is_discovered(nb_ip_address):
-    #             self.logging.debug("Deleting %s", address)
-    #             try:
-    #                 nb_ip_address.delete()
-    #             except Exception as e:
-    #                 self.logging.error(e.error)
-    #         else:
-    #             self.logging.debug(f"Setting to 'reserved': {address}")
-    #             update_dict = {'address': address, 'status': 'reserved', 'custom_fields': custom_fields}
-    #             nb_ip_address.update(update_dict)
+    def is_expired(self, nb_ip_address, days_to_expire):
+        if 'last_seen' in nb_ip_address.custom_fields:
+            last_seen = datetime.datetime.strptime(nb_ip_address.custom_fields['last_seen'], '%Y-%m-%d')
+            time_since_seen = datetime.datetime.now() - last_seen
+            if time_since_seen.days > days_to_expire:
+                self.logging.debug("Record for %s has expired: last seen on %s", nb_ip_address, last_seen)
+                return True
+
+        # Either the record is not expired or we cannot determine if it is
+        return False
+
+    def expire_nb_ip_addresses(self):
+        # We need to set to "reserved" or delete if the record was discovered
+        for nb_ip_address in self.nb_ip_addresses:
+            if str(nb_ip_address.status).lower() == 'active':
+                if self.is_expired(nb_ip_address, self.discover_expiration):
+                    if self.is_discovered(nb_ip_address):
+                        self.logging.debug("Deleting %s", nb_ip_address)
+                        try:
+                            nb_ip_address.delete()
+                        except Exception as e:
+                            self.logging.info(e.error)
+                    else:
+                        self.logging.debug("Setting %s to 'reserved'", nb_ip_address)
+                        update_dict = {'status': 'reserved'}
+                        nb_ip_address.update(update_dict)
 
     def get_meraki_networks(self, org_id):
         try:

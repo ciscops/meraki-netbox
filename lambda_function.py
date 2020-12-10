@@ -13,5 +13,6 @@ def lambda_handler(event, context):
     start_time = datetime.datetime.now()
     meraki_netbox = MerakiNetbox()
     meraki_netbox.discover_meraki_clients()
+    meraki_netbox.expire_nb_ip_addresses()
     end_time = datetime.datetime.now()
     logger.debug('Script complete, total runtime {%s - %s}', end_time, start_time)
