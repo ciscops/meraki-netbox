@@ -1,16 +1,3 @@
-# example-python-project
-Example structure for a python project with make-based CI targets
-
-
-# Requirements
-## Netbox
-tags:
-  - `discovered`
-Custom Fields:
-  - last_used: date
-  - mac: string
-
-
 # Contributing
 
 ## Requirements and virtual environment
@@ -33,6 +20,7 @@ Useful targets:
   * `make check`: runs `yapf` and `pylint` to check formatting and code correctness.  A `.pylintrc` is  provided with some defaults to make it a little less picky.
   * `make docs` : build documentation in HTML and Markdown.  By default, it will automatically generate API documentation for everyting in `myproject`.  Output documents can be found in `docs/build`.
   * `make clean`: cleans up generated binaries, virtualenvs, and documentation
+
 
 ## Coding style and correctness
 
