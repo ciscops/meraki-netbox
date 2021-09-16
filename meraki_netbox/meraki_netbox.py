@@ -55,7 +55,7 @@ class MerakiNetbox:
         self.meraki_time_format = '%Y-%m-%dT%XZ'
 
         self.dashboard = meraki.DashboardAPI(api_key='',
-                                             base_url='https://api-mp.meraki.com/api/v1/',
+                                             base_url='https://api.meraki.com/api/v1/',
                                              output_log=False,
                                              log_file_prefix=os.path.basename(__file__)[:-3],
                                              log_path='',
@@ -108,8 +108,11 @@ class MerakiNetbox:
                 self.logging.error(e.error)
 
     def is_expired(self, nb_ip_address, days_to_expire):
-        if 'last_seen' in nb_ip_address.custom_fields:
-            last_seen = datetime.datetime.strptime(nb_ip_address.custom_fields['last_seen'], '%Y-%m-%d')
+        if 'last_seen' in nb_ip_address.custom_fields and 'last_seen':
+            try:
+                last_seen = datetime.datetime.strptime(nb_ip_address.custom_fields['last_seen'], '%Y-%m-%d')
+            except Exception:
+                return False
             time_since_seen = datetime.datetime.now() - last_seen
             if time_since_seen.days > days_to_expire:
                 self.logging.debug("Record for %s has expired: last seen on %s", nb_ip_address, last_seen)
