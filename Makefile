@@ -5,10 +5,10 @@ TOPDIR = $(shell git rev-parse --show-toplevel)
 PYDIRS="meraki_netbox"
 VENV = venv_$(PROJECT_NAME)
 VENV_BIN=$(VENV)/bin
-SRC_FILES := $(shell find meraki-netbox -name \*.py)
+SRC_FILES := $(shell find $(PYDIRS) -name \*.py)
 SPHINX_DEPS := $(shell find docs/source)
 GENERATED_DOC_SOURCES := $(shell find docs/source -maxdepth 1 -type f -name \*.rst -not -name index.rst)
-NON_PYTHON_LIBS := $(shell ls | grep -v meraki-netbox)
+NON_PYTHON_LIBS := $(shell ls | grep -v $(PYDIRS))
 
 help: ## Display help
 	@awk -F ':|##' \
@@ -18,13 +18,12 @@ help: ## Display help
 
 all: clean venv_$(PROJECT_NAME) check test dist ## Setup python-viptela env and run tests
 
-venv: ## Creates the needed virtual environment.
-	test -d $(VENV) || virtualenv -p $(PYTHON_EXE) $(VENV) $(ARGS)
+venv: $(VENV_BIN)/activate
 
 $(VENV): $(VENV_BIN)/activate ## Build virtual environment
 
 $(VENV_BIN)/activate: requirements.txt test-requirements.txt
-	test -d $(VENV) || virtualenv -p $(PYTHON_EXE) $(VENV)
+	test -d $(VENV) || $(PYTHON_EXE) -m venv $(VENV)
 	echo "export TOP_DIR=$(TOPDIR)" >> $(VENV_BIN)/activate
 	. $(VENV_BIN)/activate; pip install -U pip; pip install -r requirements.txt -r test-requirements.txt
 
