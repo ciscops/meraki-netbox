@@ -20,6 +20,12 @@ Custom Fields:
   - last_used: date
   - mac: string
 
+## Environment Variable
+* `NETBOX_URL`: URL of the Netbox instance
+* `NETBOX_TOKEN`: Netbox API Token 
+* `MERAKI_ORG_ID`: Meraki ORG Id
+* `MERAKI_DASHBOARD_API_KEY`: Meraki API TOKEN
+* `MERAKI_TIMESPAN`: Timespan for the IP Address search
 
 ## Organization
 
