@@ -17,8 +17,9 @@ Tags:
   - `discovered`
 
 Custom Fields:
-  - last_used: date
+  - last_seen: date
   - mac: string
+  > Note:  both custom fields need to be present in Netbox object model: "DCIM > device", "IPAM > IP address"
 
 ## Environment Variable
 * `NETBOX_URL`: URL of the Netbox instance
@@ -37,7 +38,7 @@ This repo contains a module (`meraki-netbox`) along with scripts that leverage t
 
 Description: 
 
-This script iterates through the specified organization's networks looking for networks with the `discover-clients` tag.  When it finds such a network, it iterates through all of the hosts in that network.  For each host, it either adds it to `IP Addresses` if it does not exist or updates it if it does exist.  In both cases, it updates the `last_used` and `mac` fields.  When it adds a host, it also adds a `discovered` tag to keep track of the hosts that were added through the discovery process.
+This script iterates through the specified organization's networks looking for networks with the `discover-clients` tag.  When it finds such a network, it iterates through all of the hosts in that network.  For each host, it either adds it to `IP Addresses` if it does not exist or updates it if it does exist.  In both cases, it updates the `last_seen` and `mac` fields.  When it adds a host, it also adds a `discovered` tag to keep track of the hosts that were added through the discovery process.
 
 ## Makefile targets
 
